@@ -1,0 +1,27 @@
+commit fcc4134a7b76d82d39dea635c41ec593a41d6d19
+Author: Herbert Xu <herbert@gondor.apana.org.au>
+Date:   Sun Feb 22 19:29:48 2009 +0800
+
+    [JOBS] Do not close stderr when /dev/tty fails to open
+    
+    As it stands if we fail to open /dev/tty we end up closing stderr
+    after saving it at a higher fd.
+    
+    Thanks to David van Gorkom for reporting this.
+    
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+
+diff --git a/src/jobs.c b/src/jobs.c
+index 69a84f7..b1ab7ab 100644
+--- a/src/jobs.c
++++ b/src/jobs.c
+@@ -195,6 +195,9 @@ setjobctl(int on)
+ 			while (!isatty(fd))
+ 				if (--fd < 0)
+ 					goto out;
++			fd = dup(fd);
++			if (fd < 0)
++				goto out;
+ 		}
+ 		fd = savefd(fd);
+ 		do { /* while we are in the background */
